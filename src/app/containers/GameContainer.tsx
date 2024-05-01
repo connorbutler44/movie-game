@@ -16,6 +16,7 @@ export interface Entity {
   id: number;
   name: string;
   thumbnailUrl: string;
+  popularity: number;
 }
 
 interface ActiveState {
@@ -210,6 +211,7 @@ const GameContainer = (props: Props) => {
                   name: credit.name,
                   thumbnailUrl: credit.profile_path,
                   type: "ACTOR",
+                  popularity: credit.popularity,
                 } satisfies Entity;
               });
             dispatch({ type: "LOAD_ENTITY_CREDITS_COMPLETE", entityCredits });
@@ -246,6 +248,7 @@ const GameContainer = (props: Props) => {
                   name: `${movie.title} (${year})`,
                   thumbnailUrl: movie.poster_path,
                   type: "MOVIE",
+                  popularity: movie.popularity,
                   _date: movie._date,
                 };
               })
@@ -265,9 +268,15 @@ const GameContainer = (props: Props) => {
       name: props.startMovie.title,
       thumbnailUrl: props.startMovie.poster_path,
       type: "MOVIE",
+      popularity: 0,
     },
     ...(state.gameState === "ACTIVE" ? state.guesses : []),
   ];
+
+  const totalPopularity =
+    state.gameState === "ACTIVE" || state.gameState === "COMPLETE"
+      ? state.guesses.reduce((acc, guess) => acc + guess.popularity, 0)
+      : 0;
 
   return (
     <Fragment>
@@ -391,10 +400,8 @@ const GameContainer = (props: Props) => {
               <div>{formatTime(timerDisplay)}</div>
             </div>
             <div className="rounded bg-[#272727] grow mr-2 px-4 py-8 flex align-center justify-center items-center flex-col">
-              <div className="text-sm">Distance</div>
-              <div>
-                {state.guesses.filter((guess) => guess.type === "ACTOR").length}
-              </div>
+              <div className="text-sm">Score (lower is better)</div>
+              <div>{Math.round(totalPopularity)}</div>
             </div>
           </div>
 
